@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>番茄钟</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');</style>
+</head>
+<body>
+  <!-- Ambient light orbs -->
+  <div class="ambient-orbs">
+    <span class="orb-1"></span>
+    <span class="orb-2"></span>
+    <span class="orb-3"></span>
+  </div>
+
+  <!-- Title bar -->
+  <header class="titlebar">
+    <span class="session-count">🍅 <span id="sessionCount">0</span></span>
+    <div class="titlebar-actions">
+      <button id="btnPin" class="title-btn" title="窗口置顶">📌</button>
+      <button id="btnMinimize" class="title-btn" title="最小化">─</button>
+      <button id="btnClose" class="title-btn" title="关闭">✕</button>
+    </div>
+  </header>
+
+  <!-- Main timer -->
+  <main class="timer-container">
+    <div class="timer-card">
+      <!-- Progress ring -->
+      <div class="progress-ring-container">
+        <svg class="progress-ring" viewBox="0 0 200 200">
+          <circle class="ring-bg" cx="100" cy="100" r="85" />
+          <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="85"
+            stroke-linecap="round"
+            transform="rotate(-90, 100, 100)" />
+        </svg>
+        <div class="timer-center">
+          <span class="timer-display" id="timerDisplay">25:00</span>
+          <span class="phase-label" id="phaseLabel">专注</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button id="btnPrimary" class="btn btn-primary">开始</button>
+      <button id="btnReset" class="btn btn-secondary">重置</button>
+    </div>
+
+    <!-- Mode selector -->
+    <div class="mode-selector">
+      <button class="mode-btn active" data-mode="focus">专注</button>
+      <button class="mode-btn" data-mode="shortBreak">短休息</button>
+      <button class="mode-btn" data-mode="longBreak">长休息</button>
+    </div>
+  </main>
+
+  <!-- Settings modal -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <h3>设置</h3>
+      <div class="setting-row">
+        <label>专注时长 (分)</label>
+        <input type="number" id="inputFocus" min="1" max="120" value="25">
+      </div>
+      <div class="setting-row">
+        <label>短休息 (分)</label>
+        <input type="number" id="inputShortBreak" min="1" max="60" value="5">
+      </div>
+      <div class="setting-row">
+        <label>长休息 (分)</label>
+        <input type="number" id="inputLongBreak" min="1" max="120" value="15">
+      </div>
+      <div class="setting-row">
+        <label>长休息间隔 (番茄数)</label>
+        <input type="number" id="inputLongBreakInterval" min="1" max="20" value="4">
+      </div>
+      <button id="btnSaveSettings" class="btn btn-primary">保存</button>
+    </div>
+  </div>
+
+  <!-- Settings trigger -->
+  <button id="btnSettings" class="btn-settings">⚙️</button>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
