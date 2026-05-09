@@ -19,6 +19,8 @@ const timerDisplay = $('timerDisplay');
 const phaseLabel = $('phaseLabel');
 const sessionCountEl = $('sessionCount');
 const ringFg = $('ringFg');
+const ringEnd = $('ringEnd');
+const timerCard = $('timerCard');
 const btnPrimary = $('btnPrimary');
 const btnReset = $('btnReset');
 const btnPin = $('btnPin');
@@ -68,6 +70,15 @@ function formatTime(seconds) {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+function updateRingEndpoint(progress) {
+  const cx = 100, cy = 100, r = 85;
+  const angle = progress * 2 * Math.PI - Math.PI / 2;
+  const x = cx + r * Math.cos(angle);
+  const y = cy + r * Math.sin(angle);
+  ringEnd.setAttribute('cx', x);
+  ringEnd.setAttribute('cy', y);
+}
+
 function updateDisplay() {
   timerDisplay.textContent = formatTime(timeRemaining);
   phaseLabel.textContent = MODE_LABELS[mode];
@@ -79,6 +90,17 @@ function updateDisplay() {
   const offset = CIRCUMFERENCE * (1 - progress);
   ringFg.style.strokeDasharray = CIRCUMFERENCE;
   ringFg.style.strokeDashoffset = offset;
+  updateRingEndpoint(progress);
+
+  // Update SVG gradient stops to match current accent
+  const grad = document.querySelector('#ringGradient');
+  if (grad) {
+    const style = getComputedStyle(document.body);
+    const accent = style.getPropertyValue('--accent-current').trim();
+    const accentLight = style.getPropertyValue('--accent-light').trim();
+    grad.querySelector('stop:first-child').setAttribute('stop-color', accent);
+    grad.querySelector('stop:last-child').setAttribute('stop-color', accentLight);
+  }
 
   // Tray
   window.electronAPI.updateTray({ label: formatTime(timeRemaining), phase: mode });
@@ -103,6 +125,17 @@ function switchMode(newMode) {
   updateBodyClass();
   updateModeButtons();
   updateDisplay();
+  updateCardState();
+
+  // Mode switch animation
+  timerCard.classList.remove('mode-switching');
+  void timerCard.offsetWidth;
+  timerCard.classList.add('mode-switching');
+  // Phase label crossfade
+  phaseLabel.classList.remove('switching');
+  void phaseLabel.offsetWidth;
+  phaseLabel.classList.add('switching');
+  setTimeout(() => phaseLabel.classList.remove('switching'), 300);
 }
 
 function onTimerComplete() {
@@ -110,10 +143,16 @@ function onTimerComplete() {
   btnPrimary.textContent = '开始';
   timerDisplay.classList.add('completed');
   setTimeout(() => timerDisplay.classList.remove('completed'), 1800);
+  updateCardState();
 
   if (mode === MODE.FOCUS) {
     sessionCount++;
     sessionCountEl.textContent = sessionCount;
+    // Badge pop animation
+    const badge = sessionCountEl.closest('.session-count');
+    badge.classList.remove('pop');
+    void badge.offsetWidth;
+    badge.classList.add('pop');
     window.electronAPI.showNotification({
       title: '番茄钟',
       body: `专注完成！已完成 ${sessionCount} 个番茄。`,
@@ -132,11 +171,22 @@ function onTimerComplete() {
   }
 }
 
+// ─── Card state visual ─────────────────────────────
+function updateCardState() {
+  timerCard.classList.remove('running', 'paused');
+  if (timerState === STATE.RUNNING) {
+    timerCard.classList.add('running');
+  } else if (timerState === STATE.PAUSED) {
+    timerCard.classList.add('paused');
+  }
+}
+
 // ─── Timer control ─────────────────────────────────
 function startTimer() {
   if (timerState === STATE.PAUSED && timeRemaining <= 0) return;
   timerState = STATE.RUNNING;
   btnPrimary.textContent = '暂停';
+  updateCardState();
   intervalId = setInterval(() => {
     timeRemaining--;
     updateDisplay();
@@ -152,6 +202,7 @@ function pauseTimer() {
   btnPrimary.textContent = '继续';
   clearInterval(intervalId);
   intervalId = null;
+  updateCardState();
 }
 
 function stopTimer() {
@@ -159,6 +210,7 @@ function stopTimer() {
   btnPrimary.textContent = '开始';
   clearInterval(intervalId);
   intervalId = null;
+  updateCardState();
 }
 
 function resetTimer() {
@@ -217,6 +269,37 @@ function applySettings() {
   if (wasRunning) startTimer();
 }
 
+// Setting stepper helpers
+function setupStepper(decId, incId, inputId) {
+  const dec = $(decId);
+  const inc = $(incId);
+  const input = $(inputId);
+  dec.addEventListener('click', () => {
+    const val = parseInt(input.value) || 0;
+    const min = parseInt(input.min) || 1;
+    if (val > min) input.value = val - 1;
+  });
+  inc.addEventListener('click', () => {
+    const val = parseInt(input.value) || 0;
+    const max = parseInt(input.max) || 999;
+    if (val < max) input.value = val + 1;
+  });
+}
+
+setupStepper('decFocus', 'incFocus', 'inputFocus');
+setupStepper('decShortBreak', 'incShortBreak', 'inputShortBreak');
+setupStepper('decLongBreak', 'incLongBreak', 'inputLongBreak');
+setupStepper('decInterval', 'incInterval', 'inputLongBreakInterval');
+
+// ─── Ripple effect on buttons ──────────────────────
+document.querySelectorAll('.btn').forEach((btn) => {
+  btn.addEventListener('mousedown', (e) => {
+    const rect = btn.getBoundingClientRect();
+    btn.style.setProperty('--mx', `${((e.clientX - rect.left) / rect.width) * 100}%`);
+    btn.style.setProperty('--my', `${((e.clientY - rect.top) / rect.height) * 100}%`);
+  });
+});
+
 // ─── Events ────────────────────────────────────────
 btnPrimary.addEventListener('click', toggleTimer);
 btnReset.addEventListener('click', resetTimer);
@@ -264,3 +347,4 @@ try { btnPin.style.opacity = window.electronAPI.getAlwaysOnTop() ? '1' : '0.4'; 
 updateBodyClass();
 updateModeButtons();
 updateDisplay();
+updateCardState();

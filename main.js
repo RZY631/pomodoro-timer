@@ -57,7 +57,7 @@ function createDotPNG(color, w = 20, h = 20) {
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 340,
-    height: 440,
+    height: 500,
     resizable: false,
     frame: false,
     transparent: true,

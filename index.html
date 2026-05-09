@@ -27,14 +27,21 @@
 
   <!-- Main timer -->
   <main class="timer-container">
-    <div class="timer-card">
+    <div class="timer-card" id="timerCard">
       <!-- Progress ring -->
       <div class="progress-ring-container">
         <svg class="progress-ring" viewBox="0 0 200 200">
+          <defs>
+            <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--accent-current)" />
+              <stop offset="100%" stop-color="var(--accent-light)" />
+            </linearGradient>
+          </defs>
           <circle class="ring-bg" cx="100" cy="100" r="85" />
           <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="85"
-            stroke-linecap="round"
-            transform="rotate(-90, 100, 100)" />
+            stroke="url(#ringGradient)" />
+          <!-- Endpoint dot: appears at the leading edge of the ring -->
+          <circle class="ring-end" id="ringEnd" cx="185" cy="100" r="3.5" />
         </svg>
         <div class="timer-center">
           <span class="timer-display" id="timerDisplay">25:00</span>
@@ -60,22 +67,38 @@
   <!-- Settings modal -->
   <div class="settings-overlay" id="settingsOverlay">
     <div class="settings-panel">
-      <h3>设置</h3>
+      <h3>⚙️ 设置</h3>
       <div class="setting-row">
-        <label>专注时长 (分)</label>
-        <input type="number" id="inputFocus" min="1" max="120" value="25">
+        <label>🍅 专注时长</label>
+        <div class="input-group">
+          <button id="decFocus">−</button>
+          <input type="number" id="inputFocus" min="1" max="120" value="25">
+          <button id="incFocus">+</button>
+        </div>
       </div>
       <div class="setting-row">
-        <label>短休息 (分)</label>
-        <input type="number" id="inputShortBreak" min="1" max="60" value="5">
+        <label>☕ 短休息</label>
+        <div class="input-group">
+          <button id="decShortBreak">−</button>
+          <input type="number" id="inputShortBreak" min="1" max="60" value="5">
+          <button id="incShortBreak">+</button>
+        </div>
       </div>
       <div class="setting-row">
-        <label>长休息 (分)</label>
-        <input type="number" id="inputLongBreak" min="1" max="120" value="15">
+        <label>😌 长休息</label>
+        <div class="input-group">
+          <button id="decLongBreak">−</button>
+          <input type="number" id="inputLongBreak" min="1" max="120" value="15">
+          <button id="incLongBreak">+</button>
+        </div>
       </div>
       <div class="setting-row">
-        <label>长休息间隔 (番茄数)</label>
-        <input type="number" id="inputLongBreakInterval" min="1" max="20" value="4">
+        <label>🔄 番茄间隔</label>
+        <div class="input-group">
+          <button id="decInterval">−</button>
+          <input type="number" id="inputLongBreakInterval" min="1" max="20" value="4">
+          <button id="incInterval">+</button>
+        </div>
       </div>
       <button id="btnSaveSettings" class="btn btn-primary">保存</button>
     </div>
